@@ -26,7 +26,6 @@ sending an email to our [mailing list](
 or by reporting an issue in the [specification repo](
   https://github.com/theupdateframework/specification/issues).
 
-
 # Introduction # {#introduction}
 
 ## Scope ## {#scope}
@@ -64,7 +63,7 @@ that have tried to be secure.
 
 ## History and credit ## {#history-and-credit}
 
-Work on TUF began in late 2009.  The core ideas are based off of previous
+Work on TUF began in late 2009. The core ideas are based off of previous
 work done by Justin Cappos and Justin Samuel that [identified security flaws
 in all popular Linux package managers](https://theupdateframework.io/papers/attacks-on-package-managers-ccs2008.pdf).
 More information and current versions of this document can be found at
@@ -107,7 +106,7 @@ applications</a> to obtain and verify files being distributed by trusted
 parties.
 
 We are not providing a means to bootstrap security so that arbitrary
-installation of new software is secure.  In practice this means that people
+installation of new software is secure. In practice this means that people
 still need to use other means to verify the integrity and authenticity of
 files they download manually.
 
@@ -134,8 +133,8 @@ updates.
 The framework should provide means to minimize the impact of key compromise.
 To do so, it must support roles with multiple keys and threshold/quorum
 trust (with the exception of minimally trusted roles designed to use a
-single key).  The compromise of roles using highly vulnerable keys should
-have minimal impact.  Therefore, online keys (keys which are used in an
+single key). The compromise of roles using highly vulnerable keys should
+have minimal impact. Therefore, online keys (keys which are used in an
 automated fashion) must not be used for any role that clients ultimately
 trust for files they may install.
 
@@ -159,7 +158,7 @@ update systems</a>.
   repository</a> must be simple.
 
 + The framework must be secure to use in environments that lack support for
-  SSL (TLS).  This does not exclude the optional use of SSL when available,
+  SSL (TLS). This does not exclude the optional use of SSL when available,
   but the framework will be designed without it.
 
 ### Goals to protect against specific attacks ### {#goals-to-protect-against-specific-attacks}
@@ -225,13 +224,13 @@ unable to update.
   <a href="#client">client</a> code interface should never have to
   directly manage keys.
 
-* All keys must be easily and safely revocable.  Trusting new keys for a role
++ All keys must be easily and safely revocable. Trusting new keys for a role
   must be easy.
 
-* For roles where trust delegation is meaningful, a role should be able to
++ For roles where trust delegation is meaningful, a role should be able to
   delegate full or limited trust to another role.
 
-* The root of trust must not rely on external PKI.  That is, no authority will
++ The root of trust must not rely on external PKI. That is, no authority will
   be derived from keys outside of the framework.
 
 ### TUF Augmentation Proposal (TAP) support ### {#tuf-augmentation-proposal-tap-support}
@@ -298,19 +297,21 @@ using the framework. This is an error-free case.
 
 In the discussion of roles that follows, it is important to remember that
 the framework has been designed to allow a large amount of flexibility for
-many different use cases.  For example, it is possible to use the framework
-with a single key that is the only key used in the entire system.  This is
+many different use cases. For example, it is possible to use the framework
+with a single key that is the only key used in the entire system. This is
 considered to be insecure but the flexibility is provided in order to meet
 the needs of diverse use cases.
 
 There are four fundamental top-level roles in the framework:
-- Root role
-- Targets role
-- Snapshot role
-- Timestamp role
+
++ Root role
++ Targets role
++ Snapshot role
++ Timestamp role
 
 There is also one optional top-level role:
-- Mirrors role
+
++ Mirrors role
 
 All roles can use one or more keys and require a threshold of signatures of
 the role's keys in order to trust a given <a href="#target-metadata">metadata</a>
@@ -330,12 +331,11 @@ kept offline. If less than a threshold of Root keys are compromised, the
 This can be accomplished with a normal rotation of root keys, covered in section
 [[#key-management-and-migration]]. If a threshold of root keys is compromised,
 the Root keys should be updated out-of-band, however, the threshold should
-be chosen so that this is extremely unlikely.  In the unfortunate event that
+be chosen so that this is extremely unlikely. In the unfortunate event that
 a threshold of keys are compromised, it is safest to assume that attackers
-have installed malware and taken over affected machines.  For this reason,
+have installed malware and taken over affected machines. For this reason,
 making it difficult for attackers to compromise all of the offline keys is
 important because safely recovering from it is nearly impossible.
-
 
 ### Targets role ### {#targets}
 
@@ -345,16 +345,16 @@ are trusted by <a href="#client">clients</a>. The targets role signs
 not the actual target files themselves.
 
 In addition, the targets role can delegate full or partial trust to other
-roles.  Delegating trust means that the targets role indicates another role
+roles. Delegating trust means that the targets role indicates another role
 (that is, another set of keys and the threshold required for trust) is
 trusted to sign target file <a href="#target-metadata">metadata</a>. Partial
 trust delegation is when the delegated role is only trusted for some of the
 target files that the delegating role is trusted for.
 
 Delegated roles can further delegate trust to other delegated
-roles.  This provides for multiple levels of trust delegation where each
+roles. This provides for multiple levels of trust delegation where each
 role can delegate full or partial trust for the target files they are
-trusted for.  The delegating role in these cases is still trusted.  That is,
+trusted for. The delegating role in these cases is still trusted. That is,
 a role does not become untrusted when it has delegated trust.
 
 Any delegation can be revoked at any time: the delegating role needs only
@@ -445,7 +445,7 @@ the <a href="#target-metadata">metadata</a> and target paths available from
 that mirror can be specified.
 
 Roles, trusted keys, and target files are completely separate between
-repositories.  A multi-repository setup is a multi-root system.  When an
+repositories. A multi-repository setup is a multi-root system. When an
 application uses the framework with multiple repositories, the framework
 does not perform any "mixing" of the trusted content from each
 <a href="#repository">repository</a>. It is up to the application to
@@ -457,9 +457,9 @@ from separate repositories.
 The filesystem layout in the <a href="#repository">repository</a> is
 used for two purposes:
 
-- To give mirrors an easy way to mirror only some of the
++ To give mirrors an easy way to mirror only some of the
   <a href="#repository">repository</a>.
-- To specify which parts of the <a href="#repository">repository</a> a
++ To specify which parts of the <a href="#repository">repository</a> a
   given role has authority to sign/provide.
 
 ### Target files ### {#target-files}
@@ -582,7 +582,6 @@ All signed <a href="#target-metadata">metadata</a> objects have the format:
         A hex-encoded signature of the canonical form of the <a href="#target-metadata">
         metadata</a> for <a for="role">ROLE</a>.
 
-
 All <dfn>KEY</dfn>s have the format:
 
 <pre highlight="json">
@@ -601,7 +600,7 @@ All <dfn>KEY</dfn>s have the format:
 
       : <dfn>SCHEME</dfn>
       ::
-        A string denoting a corresponding signature scheme.  For example: <a
+        A string denoting a corresponding signature scheme. For example: <a
         for="scheme">"rsassa-pss-sha256"</a>, <a for="scheme">"ed25519"</a>, and <a
         for="scheme">"ecdsa-sha2-nistp256"</a>.
 
@@ -650,7 +649,7 @@ The <dfn for="keytype">"rsa"</dfn> format is:
 
   : <dfn for="keyval-rsa">PUBLIC</dfn>
   ::
-    PEM format and a string.  All RSA keys MUST be at least 2048 bits.
+    PEM format and a string. All RSA keys MUST be at least 2048 bits.
 
 The <dfn for="keytype">"ed25519"</dfn> format is:
 
@@ -684,17 +683,16 @@ The <dfn for="keytype">"ecdsa-sha2-nistp256"</dfn> format is:
   ::
     PEM format and a string.
 
-Metadata <dfn>date-time</dfn> follows the ISO 8601 standard.  The expected
-format of the combined date and time string is "YYYY-MM-DDTHH:MM:SSZ".  Time is
+Metadata <dfn>date-time</dfn> follows the ISO 8601 standard. The expected
+format of the combined date and time string is "YYYY-MM-DDTHH:MM:SSZ". Time is
 always in UTC, and the "Z" time zone designator is attached to indicate a
-zero UTC offset.  An example <a>date-time</a> string is "1985-10-21T01:21:00Z".
-
+zero UTC offset. An example <a>date-time</a> string is "1985-10-21T01:21:00Z".
 
 ## File formats: root.json ## {#file-formats-root}
 
-The <dfn>root.json</dfn> file is signed by the root role's keys.  It indicates
+The <dfn>root.json</dfn> file is signed by the root role's keys. It indicates
 which keys are authorized for all top-level roles, including the root
-role itself.  Revocation and replacement of top-level role keys, including
+role itself. Revocation and replacement of top-level role keys, including
 for the root role, is done by changing the keys listed for the roles in
 this file.
 
@@ -996,7 +994,7 @@ as is described for the <a>root.json</a> file.
   : <dfn>TARGETPATH</dfn>
   ::
     A string giving the path to a file that is relative to a mirror's base URL
-    of targets.  To avoid surprising behavior when resolving paths, it is
+    of targets. To avoid surprising behavior when resolving paths, it is
     RECOMMENDED that a <a>TARGETPATH</a> uses the forward slash (/) as directory
     separator and does not start with a directory separator. The recommendation
     for <a>TARGETPATH</a> aligns with the ["path-relative-URL string"
@@ -1004,7 +1002,7 @@ as is described for the <a>root.json</a> file.
     WHATWG URL specification.
 
     It is allowed to have a <a>TARGETS</a> object with no <a>TARGETPATH</a>
-    elements.  This can be used to indicate that no <a href="#target-file">
+    elements. This can be used to indicate that no <a href="#target-file">
     target files</a> are available.
 
   : <dfn for="targets-obj">LENGTH</dfn>
@@ -1058,7 +1056,7 @@ format:
 
   : <dfn>ROLENAME</dfn>
   ::
-    A string giving the name of the delegated role.  For example, "projects".
+    A string giving the name of the delegated role. For example, "projects".
     The rolename MUST be unique in the delegations object: multiple roles with
     the same rolename are not allowed within a <a>DELEGATIONS</a>.
 
@@ -1198,7 +1196,7 @@ the latest version of the snapshot <a href="#target-metadata">metadata</a> and i
 frequently re-signed to limit the amount of time a <a href="#client">client</a>
 can be kept unaware of interference with obtaining updates.
 
-Timestamp files will potentially be downloaded very frequently.  Unnecessary
+Timestamp files will potentially be downloaded very frequently. Unnecessary
 information in them will be avoided.
 
 The "signed" portion of <a>timestamp.json</a> is as follows:
@@ -1216,7 +1214,7 @@ The "signed" portion of <a>timestamp.json</a> is as follows:
 <a>SPEC_VERSION</a>, <a for="role">VERSION</a> and <a>EXPIRES</a> are the same as is
 described for the <a>root.json</a> file.
 
-<a>METAFILES</a> is the same as described for the <a>snapshot.json</a> file.  In the case
+<a>METAFILES</a> is the same as described for the <a>snapshot.json</a> file. In the case
 of the <a>timestamp.json</a> file, this MUST only include a description of the
 <a>snapshot.json</a> file.
 
@@ -1252,7 +1250,7 @@ A signed <a>timestamp.json</a> example file:
 
 ## File formats: mirrors.json ## {#file-formats-mirrors}
 
-The <dfn>mirrors.json</dfn> file is signed by the mirrors role.  It indicates which
+The <dfn>mirrors.json</dfn> file is signed by the mirrors role. It indicates which
 mirrors are active and believed to be mirroring specific parts of the
 <a href="#repository">repository</a>.
 
@@ -1546,15 +1544,15 @@ attempt to update it in the next step.
     go to step [[#fetch-target]].
 
   2. Otherwise, recursively search the list of delegations in
-     order of appearance.
+    order of appearance.
 
     1. If the current delegation is a terminating delegation,
-       then jump to step [[#fetch-target]].
+      then jump to step [[#fetch-target]].
 
     2. Otherwise, if the current delegation is a
-       non-terminating delegation, continue processing the next delegation, if
-       any. Stop the search, and jump to step [[#fetch-target]] as soon as a delegation
-       returns a result.
+      non-terminating delegation, continue processing the next delegation, if
+      any. Stop the search, and jump to step [[#fetch-target]] as soon as a delegation
+      returns a result.
 
 ## Fetch target ## {#fetch-target}
 
@@ -1589,13 +1587,13 @@ discussion of recommended usage in various situations.
 
 All keys, except those for the timestamp and mirrors roles, should be
 stored securely offline (e.g. encrypted and on a separate machine, in
-special-purpose hardware, etc.).  This document does not prescribe how keys
+special-purpose hardware, etc.). This document does not prescribe how keys
 should be encrypted and stored, and so it is left to implementers of
 this document to decide how best to secure them.
 
 To replace a compromised root key or any other top-level role key, the root
 role signs a new root.json file that lists the updated trusted keys for the
-role.  When replacing root keys, an application will sign the new root.json
+role. When replacing root keys, an application will sign the new root.json
 file with both the new and old root keys. Any time such a change is
 required, the root.json file is versioned and accessible by version number,
 e.g., 3.root.json.
@@ -1706,48 +1704,48 @@ the <a href="#repository">repository</a>, or updating existing
 ### Update targets metadata ### {#update-targets-metadata}
 
 1. Add the new (or update an existing) <a>TARGETS</a> object in the relevant
-   targets <a href="#target-metadata">metadata</a> (either the top-level targets
-   metadata, or a delegated targets metadata).
+  targets <a href="#target-metadata">metadata</a> (either the top-level targets
+  metadata, or a delegated targets metadata).
 2. Increment the <a for="role">VERSION</a> number in the updated targets
-   metadata.
+  metadata.
 3. Sign the updated targets <a href="#target-metadata">metadata</a> with at
-   least a <a>THRESHOLD</a> of keys for the associated targets role (either the
-   top-level targets role, or a delegated targets role).
+  least a <a>THRESHOLD</a> of keys for the associated targets role (either the
+  top-level targets role, or a delegated targets role).
 4. Write the updated targets <a href="#target-metadata">metadata</a>, ensuring
-   the targets metadata filename is prefixed with the <a for="role">VERSION</a>
-   number if consistent snapshots are enabled for the <a href="#repository">
-   repository</a>.
+  the targets metadata filename is prefixed with the <a for="role">VERSION</a>
+  number if consistent snapshots are enabled for the <a href="#repository">
+  repository</a>.
 
 ### Update snapshot metadata ### {#update-snapshot-metadata}
 
 1. Update the <a for="metapath">VERSION</a> number and, when in use,
-   <a for="metapath">LENGTH</a> and <a for="metapath">HASHES</a> for any targets
-   <a href="#target-metadata">metadata</a> modified during
-   [[#update-targets-metadata]] within the <a>METAFILES</a> object of the
-   snapshot metadata.
+  <a for="metapath">LENGTH</a> and <a for="metapath">HASHES</a> for any targets
+  <a href="#target-metadata">metadata</a> modified during
+  [[#update-targets-metadata]] within the <a>METAFILES</a> object of the
+  snapshot metadata.
 2. Increment the <a for="role">VERSION</a> number of the snapshot
-   <a href="#target-metadata">metadata</a>.
+  <a href="#target-metadata">metadata</a>.
 3. Sign the snapshot <a href="#target-metadata">metadata</a> with at least a
-   <a>THRESHOLD</a> of keys for the snapshot role.
+  <a>THRESHOLD</a> of keys for the snapshot role.
 4. Write the updated snapshot <a href="#target-metadata">metadata</a>,
-   ensuring the snapshot metadata filename is prefixed with the <a for="role">
-   VERSION</a> number if consistent snapshots are enabled for the
-   <a href="#repository">repository</a>.
+  ensuring the snapshot metadata filename is prefixed with the <a for="role">
+  VERSION</a> number if consistent snapshots are enabled for the
+  <a href="#repository">repository</a>.
 
 ### Update timestamp metadata ### {#update-timestamp-metadata}
 
 1. Update the <a for="metapath">VERSION</a> and, when in use, the
-   <a for="metapath">LENGTH</a> and <a for="metapath">HASHES</a> for the
-   snapshot <a href="#target-metadata">metadata</a> within the <a>METAFILES</a>
-   object of the timestamp metadata.
+  <a for="metapath">LENGTH</a> and <a for="metapath">HASHES</a> for the
+  snapshot <a href="#target-metadata">metadata</a> within the <a>METAFILES</a>
+  object of the timestamp metadata.
 2. Increment the <a for="role">VERSION</a> number of the timestamp
-   <a href="#target-metadata">metadata</a>.
+  <a href="#target-metadata">metadata</a>.
 3. Sign the timestamp <a href="#target-metadata">metadata</a> with at least a
-   <a>THRESHOLD</a> of keys for the timestamp role.
+  <a>THRESHOLD</a> of keys for the timestamp role.
 4. Write the updated timestamp <a href="#target-metadata">metadata</a>,
-   ensuring the timestamp metadata filename is prefixed with the <a for="role">
-   VERSION</a> number if consistent snapshots are enabled for the
-   <a href="#repository">repository</a>.
+  ensuring the timestamp metadata filename is prefixed with the <a for="role">
+  VERSION</a> number if consistent snapshots are enabled for the
+  <a href="#repository">repository</a>.
 
 # Future directions and open questions # {#future-directions-and-open-questions}
 
