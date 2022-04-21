@@ -27,7 +27,7 @@ jobs:
         key: ${{ runner.os }}-pip-
 
     - name: Clone main
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
       with:
         fetch-depth: 0
 
@@ -62,7 +62,7 @@ jobs:
 
     - name: Switch branch
       if: steps.getver.outputs.spec_version != steps.prevver.outputs.prev_version
-      uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
       with:
         ref: gh-pages
         clean: false
