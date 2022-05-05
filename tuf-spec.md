@@ -3,7 +3,7 @@ Title: The Update Framework Specification
 Shortname: TUF
 Status: LS
 Abstract: A framework for securing software update systems.
-Date: 2021-07-13
+Date: 2022-04-28
 Editor: Justin Cappos, NYU
 Editor: Trishank Karthik Kuppusamy, Datadog
 Editor: Joshua Lock, VMware
@@ -16,7 +16,7 @@ Boilerplate: copyright no, conformance no
 Local Boilerplate: header yes
 Markup Shorthands: css no, markdown yes
 Metadata Include: This version off, Abstract off
-Text Macro: VERSION 1.0.20
+Text Macro: VERSION 1.0.30
 </pre>
 
 Note: We strive to make the specification easy to implement, so if you come
@@ -200,7 +200,7 @@ when a client is unable to update.
 + **Wrong software installation.**  An attacker cannot provide a file
   (trusted or untrusted) that is not the one the client wanted.
 
-### Goals for PKI ### {#goals-for-pki}
+### Goals for PKI (Public key infrastructure) ### {#goals-for-pki}
 
 * Software update systems using the framework's client code interface should
   never have to directly manage keys.
@@ -216,13 +216,13 @@ when a client is unable to update.
 
 ### TUF Augmentation Proposal (TAP) support ### {#tuf-augmentation-proposal-tap-support}
 
-This major version (1.x.y) of the specification adheres to the following TAPS:
+This major version (1.x.y) of the specification adheres to the following TAPs:
 
 - [TAP 6](https://github.com/theupdateframework/taps/blob/master/tap6.md):
     Include specification version in metadata
 - [TAP 9](https://github.com/theupdateframework/taps/blob/master/tap9.md):
     Mandatory Metadata signing schemes
-- [Tap 10](https://github.com/theupdateframework/taps/blob/master/tap10.md):
+- [TAP 10](https://github.com/theupdateframework/taps/blob/master/tap10.md):
     Remove native support for compressed metadata
 - [TAP 11](https://github.com/theupdateframework/taps/blob/master/tap11.md):
     Using POUFs for Interoperability
@@ -399,7 +399,7 @@ publicly available in the [TAP directory](https://github.com/theupdateframework/
 
 An application uses the framework to interact with one or more repositories.
 A repository is a conceptual source of target files of interest to the
-application.  Each repository has one or more mirrors which are the actual
+application.  Each repository MAY have one or more mirrors as the
 providers of files to be downloaded.  For example, each mirror may specify a
 different host where files can be downloaded from over HTTP.
 
@@ -429,6 +429,13 @@ The filenames and the directory structure of target files available from
 a repository are not specified by the framework.  The names of these files
 and directories are completely at the discretion of the application using
 the framework.
+
+However, when <a>CONSISTENT_SNAPSHOT</a>s are in use, there is a RECOMMENDED
+mechanism for naming target files on the repository (see
+[[#consistent-snapshots]]). If an application using the framework does not
+follow these recommendations, but wishes to support self-contained consistent
+snapshots the application MUST ensure that target files are persisted in a way
+where each target file can be uniquely and consistently addressed.
 
 ### Metadata files ### {#metadata-files}
 
@@ -490,9 +497,11 @@ A delegated role file is located at:
 # Document formats # {#document-formats}
 
 All of the formats described below include the ability to add more
-attribute-value fields for backwards-compatible format changes.  If
-a backwards incompatible format change is needed, a new filename can
-be used.
+attribute-value fields to objects for backwards-compatible format changes.
+Implementers who encounter undefined attribute-value pairs in the format
+must include the data when calculating hashes or verifying signatures and must
+preserve the data when re-serializing. If a backwards incompatible format change
+is needed, a new filename can be used.
 
 ## Metaformat ## {#metaformat}
 
@@ -529,6 +538,8 @@ All signed metadata objects have the format:
       ::
         The identifier of the key signing the <a for="role">ROLE</a> object,
         which is a hexdigest of the SHA-256 hash of the canonical form of the key.
+        The keyid MUST be unique in the "signatures" array: multiple
+        signatures with the same keyid are not allowed.
 
       : <dfn>SIGNATURE</dfn>
       ::
@@ -688,9 +699,11 @@ The "signed" portion of <a>root.json</a> is as follows:
 
   : <dfn>CONSISTENT_SNAPSHOT</dfn>
   ::
-    A boolean indicating whether the repository supports
-    consistent snapshots.  Section [[#consistent-snapshots]] goes into more
-    detail on the consequences of enabling this setting on a repository.
+    An OPTIONAL boolean indicating whether the repository supports
+    consistent snapshots. This field is OPTIONAL for backwards compatibility with
+    old metadata. New implementations SHOULD include it. Section
+    [[#consistent-snapshots]] goes into more detail on the consequences of
+    enabling this setting on a repository.
 
   : <dfn for="role">VERSION</dfn>
   ::
@@ -707,7 +720,7 @@ The "signed" portion of <a>root.json</a> is as follows:
   ::
     One of "root", "snapshot", "targets", "timestamp", or "mirrors".
     A role for each of "root", "snapshot", "timestamp", and "targets" MUST be
-    specified in the key list. The role of "mirror" is OPTIONAL.  If not
+    specified in the roles object. The role of "mirror" is OPTIONAL.  If not
     specified, the mirror list will not need to be signed if mirror lists are
     being used.
 
@@ -976,7 +989,8 @@ as is described for the <a>root.json</a> file.
     <a>TARGETPATH</a>.  The application may use this information to guide
     download decisions.
 
-<dfn>DELEGATIONS</dfn> is an object whose format is the following:
+<dfn>DELEGATIONS</dfn> is an OPTIONAL object and if defined it has the following
+format:
 
 <pre highlight="json">
 {
@@ -1004,6 +1018,8 @@ as is described for the <a>root.json</a> file.
   : <dfn>ROLENAME</dfn>
   ::
     A string giving the name of the delegated role.  For example, "projects".
+    The rolename MUST be unique in the delegations object: multiple roles with
+    the same rolename are not allowed within a <a>DELEGATIONS</a>.
 
   : <dfn>TERMINATING</dfn>
   ::
@@ -1018,9 +1034,8 @@ as is described for the <a>root.json</a> file.
     package that are not made by the delegated party or its descendants to be
     ignored.
 
-In order to discuss target paths, a role MUST specify only one of the
-<a>"path_hash_prefixes"</a> or <a for="delegation-role">"paths"</a> attributes,
-each of which we discuss next.
+The <a>"path_hash_prefixes"</a> and <a for="delegation-role">"paths"</a>
+attributes are OPTIONAL, if used, exactly one of them should be set.
 
   : <dfn>"path_hash_prefixes"</dfn>
   ::
@@ -1277,8 +1292,7 @@ it in the next step.
   somehow be able to establish a trusted line of continuity to the latest set
   of keys (see [[#key-management-and-migration]]).  To do so, the client MUST
   download intermediate root metadata files, until the latest available one is
-  reached.  Therefore, it MUST temporarily turn on consistent snapshots in
-  order to download *versioned* root metadata files as described next.
+  reached.
 
 2. Let N denote the version number of the trusted root metadata
   file.
@@ -1298,17 +1312,16 @@ it in the next step.
   the trusted root metadata file (version N), and (2) a threshold of keys
   specified in the new root metadata file being validated (version N+1).  If
   version N+1 is not signed as required, discard it, abort the update cycle,
-  and report the signature failure.  On the next update cycle, begin at step
-  [[#update-root]] and version N of the root metadata file.
+  and report the signature failure.
 
 5. **Check for a rollback attack.** The version number of the trusted
-  root metadata file (version N) MUST be less than or equal to the version
+  root metadata file (version N) MUST be less than the version
   number of the new root metadata file (version N+1). Effectively, this means
   checking that the version number signed in the new root metadata file is
-  indeed N+1.  If the version of the new root metadata file is less than the
-  trusted metadata file, discard it, abort the update cycle, and report the
-  rollback attack.  On the next update cycle, begin at step [[#update-root]]
-  and version N of the root metadata file.
+  indeed N+1. If the version of the new root metadata file is less than the version
+  of the trusted metadata file, discard it, abort the update cycle, and report the
+  rollback attack. In case they are equal, again discard the new root metadata, but
+  proceed the update cycle with the already trusted root metadata.
 
 6. Note that the expiration of the new (intermediate) root metadata
   file does not matter yet, because we will check for it in step 5.3.10.
@@ -1324,8 +1337,7 @@ it in the next step.
 10. **Check for a freeze attack.** The expiration timestamp in the
   trusted root metadata file MUST be higher than the fixed update start time.
   If the trusted root metadata file has expired, abort the update cycle,
-  report the potential freeze attack.  On the next update cycle, begin at step
-  [[#update-root]] and version N of the root metadata file.
+  report the potential freeze attack.
 
 11. **If the timestamp and / or snapshot keys have been rotated, then delete the
   trusted timestamp and snapshot metadata files.** This is done
@@ -1350,21 +1362,25 @@ it in the next step.
 
 2. **Check for an arbitrary software attack.** The new timestamp
   metadata file MUST have been signed by a threshold of keys specified in the
-  trusted root metadata file.  If the new timestamp metadata file is not
+  trusted root metadata file. If the new timestamp metadata file is not
   properly signed, discard it, abort the update cycle, and report the signature
   failure.
 
 3. **Check for a rollback attack.**
 
   1. The version number of the trusted timestamp metadata file, if
-    any, MUST be less than or equal to the version number of the new timestamp
-    metadata file.  If the new timestamp metadata file is older than the
-    trusted timestamp metadata file, discard it, abort the update cycle, and
-    report the potential rollback attack.
+    any, MUST be less than the version number of the new timestamp
+    metadata file. If the new timestamp metadata version is less than the trusted
+    timestamp metadata version, discard it, abort the update cycle, and
+    report the potential rollback attack. In case they are equal, discard the new
+    timestamp metadata and abort the update cycle. This is normal and it
+    shouldn't raise any error. The reason for aborting the update process is that
+    there shouldn't be any changes in the content of this, or any other metadata
+    files too, considering it has the same version as the already trusted one.
 
   2. The version number of the snapshot metadata file in the
     trusted timestamp metadata file, if any, MUST be less than or equal to its
-    version number in the new timestamp metadata file.  If not, discard the new
+    version number in the new timestamp metadata file. If not, discard the new
     timestamp metadata file, abort the update cycle, and report the failure.
 
 4. **Check for a freeze attack.** The expiration timestamp in the
@@ -1392,9 +1408,11 @@ it in the next step.
 2. **Check against timestamp role's snapshot hash**. The hashes
   of the new snapshot metadata file MUST match the hashes, if any, listed in
   the trusted timestamp metadata.  This is done, in part, to prevent a
-  mix-and-match attack by man-in-the-middle attackers.  If the hashes do not
-  match, discard the new snapshot metadata, abort the update cycle, and report
-  the failure.
+  mix-and-match attack by man-in-the-middle attackers. It is safe to check the
+  hashes before the signatures, because the hashes come from the timestamp
+  role, which we have already verified in the previous step; it is also a quick
+  way to reject bad metadata. If the hashes do not match, discard the
+  new snapshot metadata, abort the update cycle, and report the failure.
 
 3. **Check for an arbitrary software attack**. The new snapshot
   metadata file MUST have been signed by a threshold of keys specified in the
@@ -1441,9 +1459,11 @@ it in the next step.
 2. **Check against snapshot role's targets hash**. The hashes
   of the new targets metadata file MUST match the hashes, if any, listed in the
   trusted snapshot metadata.  This is done, in part, to prevent a mix-and-match
-  attack by man-in-the-middle attackers.  If the new targets metadata file does
-  not match, discard the new target metadata, abort the update cycle, and
-  report the failure.
+  attack by man-in-the-middle attackers. It is safe to check the hashes before
+  the signatures, because the hashes come from the snapshot role, which we have
+  already verified in the previous step; it is also a quick way to reject bad
+  metadata. If the new targets metadata file does not match, discard the new
+  target metadata, abort the update cycle, and report the failure.
 
 3. **Check for an arbitrary software attack**. The new targets
   metadata file MUST have been signed by a threshold of keys specified in the
@@ -1574,49 +1594,45 @@ without interrupting that client.
 We now explain how a repository should write metadata and targets to
 produce self-contained consistent snapshots.
 
-Simply put, TUF should write every metadata file as such: if the
-file had the original name of filename.ext, then it should be written to
-non-volatile storage as version_number.filename.ext, where version_number
-is an integer.
+Simply put, every metadata file MUST be named as such: if the
+file had the original name of FILENAME.EXT, then it MUST be written to
+non-volatile storage as VERSION_NUMBER.FILENAME.EXT, where VERSION_NUMBER
+is the integer version number listed in the metadata file.
 
-On the other hand, consistent target files should be written to
-non-volatile storage as digest.filename.ext.  This means that if the
+On the other hand, consistent target files MUST be written to
+non-volatile storage as HASH.FILENAME.EXT.  This means that if the
 referrer metadata lists N cryptographic hashes of the referred file, then
-there must be N identical copies of the referred file, where each file will
+there MUST be N identical copies of the referred file, where each file will
 be distinguished only by the value of the digest in its filename. The
 modified filename need not include the name of the cryptographic hash
 function used to produce the digest because, on a read, the choice of
 function follows from the selection of a digest (which includes the name of
 the cryptographic function) from all digests in the referred file.
 
-Additionally, the timestamp metadata (timestamp.json) should also be
-written to non-volatile storage whenever it is updated. It is OPTIONAL for
-an implementation to write identical copies at
-version_number.timestamp.json for record-keeping purposes, because a
-cryptographic hash of the timestamp metadata is usually not known in
-advance. The same step applies to the root metadata (root.json), although
-an implementation must write both root.json and version_number.root.json
-because it is possible to download root metadata both with and without
-known version numbers. These steps are required because these are the only
-metadata files that may be requested without known version numbers.
+Timestamp metadata (timestamp.EXT) MUST be written to non-volatile storage
+without a version prefix whenever it is updated. This is required because
+timestamp metadata is the only metadata file that may be requested without known
+version numbers.  It is OPTIONAL for an implementation to write an identical copy
+of timestamp.EXT to the respective VERSION_NUMBER.timestamp.EXT for
+record-keeping purposes.
 
-Most importantly, no metadata file format must be updated to refer to the
-names of metadata or target files with their version numbers included. In
-other words, if a metadata file A refers to another metadata file B as
-filename.ext, then the filename must remain as filename.ext and not
-version_number.filename.ext. This rule is in place so that metadata signed
-by roles with offline keys will not be forced to sign for the metadata file
-whenever it is updated. In the next subsection, we will see how clients
-will reproduce the name of the intended file.
+Most importantly, metadata file formats SHALL NOT be updated to refer to the
+names of metadata or target files with their consistent snapshot prefix
+included. In other words, if a metadata file A refers to another metadata file B
+as FILENAME.EXT, then the filename listed in the metadata MUST remain as
+FILENAME.EXT and not VERSION_NUMBER.FILENAME.EXT. This rule is in place so that
+metadata signed by roles with offline keys will not be forced to sign for the
+metadata file whenever it is updated. In the next subsection, we will see how
+clients will reproduce the name of the intended file.
 
-Finally, the root metadata should write the Boolean "consistent_snapshot"
-attribute at the root level of its keys of attributes. If consistent
-snapshots are not written by the repository, then the attribute may either
-be left unspecified or be set to the False value.  Otherwise, it must be
-set to the True value.
+Finally, when consistent snapshots are written by the repository the root
+metadata MUST write the boolean <a>CONSISTENT_SNAPSHOT</a> attribute at the root
+level of its keys of attributes set to the true value. If consistent snapshots
+are not written by the repository, then the attribute MAY either be left
+unspecified or be set to the false value.
 
 Regardless of whether consistent snapshots are ever used or not, all
-released versions of root metadata files should always be provided
+released versions of root metadata files MUST always be provided
 so that outdated clients can update to the latest available root.
 
 
